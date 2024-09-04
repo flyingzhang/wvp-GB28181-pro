@@ -55,6 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Autowired
     private AnonymousAuthenticationEntryPoint anonymousAuthenticationEntryPoint;
+
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -82,7 +83,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             matchers.add("/api/emit");
             matchers.add("/favicon.ico");
             // 可以直接访问的静态数据
-            web.ignoring().antMatchers(matchers.toArray(new String[0]));
+            web
+                    .ignoring()
+                    .antMatchers(matchers.toArray(new String[0]));
         }
     }
 
@@ -123,7 +126,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(anonymousAuthenticationEntryPoint)
-                .and().logout().logoutUrl("/api/user/logout").permitAll()
+                .and()
+                .logout()
+                .logoutUrl("/api/user/logout").permitAll()
+                .addLogoutHandler(logoutHandler)
                 .logoutSuccessHandler(logoutHandler)
         ;
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -5,7 +5,10 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.SecurityUtils;
+import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -13,16 +16,14 @@ import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service("zlm")
 public class ZLMMediaNodeServerService implements IMediaNodeServerService {
@@ -34,6 +35,8 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     @Autowired
     private ZLMServerFactory zlmServerFactory;
+    @Autowired
+    private UserSetting userSetting;
 
     @Override
     public int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
@@ -192,13 +195,18 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String callId, boolean isPlay) {
+        LoginUser user = SecurityUtils.getUserInfo();
+
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStream(stream);
         streamInfoResult.setApp(app);
         String addr = mediaServer.getStreamIp();
         streamInfoResult.setIp(addr);
         streamInfoResult.setMediaServerId(mediaServer.getId());
-        String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
+        String baseParam = Boolean.TRUE.equals(userSetting.getPlayAuthority()) ?
+                "?token=" + user.getShortToken() : "?";
+        String callIdParam = ObjectUtils.isEmpty(callId)? baseParam :
+                baseParam + "&&callId=" + callId;
         streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
         String flvFile = String.format("%s/%s.live.flv%s", app, stream, callIdParam);

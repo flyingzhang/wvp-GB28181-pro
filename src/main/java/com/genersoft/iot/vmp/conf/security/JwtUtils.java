@@ -43,6 +43,7 @@ public class JwtUtils implements InitializingBean {
 
     private static final String AUDIENCE = "Audience";
 
+    public static final String CLAIM_KEY_SHORT_TOKEN = "short-token";
     private static final String keyId = "3e79646c4dbc408383a9eed09f2b85ae";
 
     /**
@@ -158,6 +159,11 @@ public class JwtUtils implements InitializingBean {
         return createToken(username, EXPIRATION_TIME);
     }
 
+    public static String createToken(String username, Map<String, Object> extra) {
+        return createToken(username, EXPIRATION_TIME, extra);
+    }
+
+
     public static String getHeader() {
         return HEADER;
     }
@@ -201,13 +207,14 @@ public class JwtUtils implements InitializingBean {
             }
 
             String username = (String) claims.getClaimValue("userName");
+            String shortToken = (String) claims.getClaimValue(CLAIM_KEY_SHORT_TOKEN);
             User user = userService.getUserByUsername(username);
 
             jwtUser.setUserName(username);
             jwtUser.setPassword(user.getPassword());
             jwtUser.setRoleId(user.getRole().getId());
             jwtUser.setUserId(user.getId());
-
+            jwtUser.setShortToken(shortToken);
             return jwtUser;
         } catch (InvalidJwtException e) {
             if (e.hasErrorCode(ErrorCodes.EXPIRED)) {

@@ -11,7 +11,7 @@ public interface IMediaService {
     /**
      * 播放鉴权
      */
-    boolean authenticatePlay(String app, String stream, String callId);
+    boolean authenticatePlay(String app, String stream, String callId, String token);
 
     ResultForOnPublish authenticatePublish(MediaServer mediaServer, String app, String stream, String params);
 

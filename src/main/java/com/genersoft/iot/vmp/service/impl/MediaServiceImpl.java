@@ -6,6 +6,8 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.conf.security.dto.JwtUser;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -26,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.sip.InvalidArgumentException;
@@ -72,13 +75,30 @@ public class MediaServiceImpl implements IMediaService {
     @Autowired
     private ISIPCommander commander;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     @Override
-    public boolean authenticatePlay(String app, String stream, String callId) {
+    public boolean authenticatePlay(String app, String stream, String callId, String token) {
         if (app == null || stream == null) {
             return false;
         }
         if ("rtp".equals(app)) {
             return true;
+        }
+        if (userSetting.getPlayAuthority()) {
+            // 判定
+            if (token != null && !token.isEmpty()) {
+                String jwtToken = stringRedisTemplate.opsForValue().get("short-token:" + token);
+                JwtUser jwtUser = JwtUtils.verifyToken(jwtToken);
+                if (jwtUser == null || jwtUser.getStatus() == JwtUser.TokenStatus.EXPIRED || jwtUser.getStatus() == JwtUser.TokenStatus.EXCEPTION) {
+                    logger.debug("[ZLM HOOK] player user auth failed: token invalid {}", token);
+                    return false;
+                }
+            } else {
+                logger.debug("[ZLM HOOK] player user auth failed: no valid token");
+                return false;
+            }
         }
         StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
         if (streamAuthorityInfo == null || streamAuthorityInfo.getCallId() == null) {

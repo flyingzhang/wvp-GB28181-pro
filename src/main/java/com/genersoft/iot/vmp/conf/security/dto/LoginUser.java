@@ -21,6 +21,7 @@ public class LoginUser implements UserDetails, CredentialsContainer {
 
     private String accessToken;
 
+    private String shortToken;
 
     /**
      * 登录时间
@@ -30,6 +31,7 @@ public class LoginUser implements UserDetails, CredentialsContainer {
     public LoginUser(User user, LocalDateTime loginTime) {
         this.user = user;
         this.loginTime = loginTime;
+        this.shortToken = user.getShortToken();
     }
 
 
@@ -110,5 +112,16 @@ public class LoginUser implements UserDetails, CredentialsContainer {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public String getShortToken() {
+        return shortToken;
+    }
+
+    public void setShortToken(String shortToken) {
+        this.shortToken = shortToken;
+        if (this.user != null) {
+            this.user.setShortToken(shortToken);
+        }
     }
 }

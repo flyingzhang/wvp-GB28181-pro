@@ -9,6 +9,7 @@ public class User {
     private String updateTime;
     private String pushKey;
     private Role role;
+    private String shortToken;
 
     public int getId() {
         return id;
@@ -64,5 +65,13 @@ public class User {
 
     public void setPushKey(String pushKey) {
         this.pushKey = pushKey;
+    }
+
+    public String getShortToken() {
+        return shortToken;
+    }
+
+    public void setShortToken(String shortToken) {
+        this.shortToken = shortToken;
     }
 }

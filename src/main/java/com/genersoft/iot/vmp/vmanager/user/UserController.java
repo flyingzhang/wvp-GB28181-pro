@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.LogonUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
@@ -25,8 +27,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name  = "用户管理")
 @RestController
@@ -41,6 +46,9 @@ public class UserController {
 
     @Autowired
     private IRoleService roleService;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @GetMapping("/login")
     @PostMapping("/login")
@@ -59,9 +67,15 @@ public class UserController {
         if (user == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
         }else {
-            String jwt = JwtUtils.createToken(username);
+            Map<String, Object> extra = new HashMap<>();
+            String shortToken = LogonUtils.generateShortToken();
+            extra.put(JwtUtils.CLAIM_KEY_SHORT_TOKEN, shortToken);
+            String jwt = JwtUtils.createToken(username, extra);
             response.setHeader(JwtUtils.getHeader(), jwt);
+            //TODO: 此处为快速实现，并不严谨
+            stringRedisTemplate.opsForValue().set(LogonUtils.SHORT_TOKEN_PREFIX + shortToken, jwt, Duration.ofDays(60L));
             user.setAccessToken(jwt);
+            user.setShortToken(shortToken);
         }
         return user;
     }

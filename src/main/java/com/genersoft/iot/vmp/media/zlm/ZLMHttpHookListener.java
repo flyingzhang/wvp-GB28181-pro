@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.conf.security.dto.JwtUser;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -25,12 +27,14 @@ import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -118,9 +122,6 @@ public class ZLMHttpHookListener {
     private ThreadPoolTaskExecutor taskExecutor;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
-
-    @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
@@ -154,7 +155,7 @@ public class ZLMHttpHookListener {
 
         Map<String, String> paramMap = MediaServerUtils.urlParamToMap(param.getParams());
         // 对于播放流进行鉴权
-        boolean authenticateResult = mediaService.authenticatePlay(param.getApp(), param.getStream(), paramMap.get("callId"));
+        boolean authenticateResult = mediaService.authenticatePlay(param.getApp(), param.getStream(), paramMap.get("callId"), paramMap.get("token"));
         if (!authenticateResult) {
             logger.info("[ZLM HOOK] 播放鉴权 失败：{}->{}", param.getMediaServerId(), param);
             return new HookResult(401, "Unauthorized");
@@ -281,7 +282,6 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_stream_not_found", produces = "application/json;charset=UTF-8")
     public HookResult onStreamNotFound(@RequestBody OnStreamNotFoundHookParam param) {
         logger.info("[ZLM HOOK] 流未找到：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
-
 
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
         if (!userSetting.isAutoApplyPlay() || mediaServer == null) {

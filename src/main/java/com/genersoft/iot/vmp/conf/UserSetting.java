@@ -45,6 +45,8 @@ public class UserSetting {
 
     private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
 
+    private Boolean playAuthority = Boolean.TRUE;
+
     private Boolean sipLog = Boolean.FALSE;
     private Boolean sqlLog = Boolean.FALSE;
     private Boolean sendToPlatformsWhenIdLost = Boolean.FALSE;
@@ -334,5 +336,13 @@ public class UserSetting {
 
     public void setGbDeviceOnline(int gbDeviceOnline) {
         this.gbDeviceOnline = gbDeviceOnline;
+    }
+
+    public Boolean getPlayAuthority() {
+        return playAuthority;
+    }
+
+    public void setPlayAuthority(Boolean playAuthority) {
+        this.playAuthority = playAuthority;
     }
 }

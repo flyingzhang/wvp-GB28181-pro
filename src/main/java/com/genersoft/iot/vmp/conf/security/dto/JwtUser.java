@@ -2,6 +2,14 @@ package com.genersoft.iot.vmp.conf.security.dto;
 
 public class JwtUser {
 
+    public String getShortToken() {
+        return shortToken;
+    }
+
+    public void setShortToken(String shortToken) {
+        this.shortToken = shortToken;
+    }
+
     public enum TokenStatus{
         /**
          * 正常的使用状态
@@ -29,6 +37,8 @@ public class JwtUser {
     private int roleId;
 
     private TokenStatus status;
+
+    private String shortToken;
 
     public int getUserId() {
         return userId;
