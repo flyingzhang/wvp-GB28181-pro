@@ -78,6 +78,8 @@ public class UserSetting {
 
     private int gbDeviceOnline = 1;
 
+    private boolean alwaysRegisterOnStart = false;
+
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
     }
@@ -344,5 +346,17 @@ public class UserSetting {
 
     public void setPlayAuthority(Boolean playAuthority) {
         this.playAuthority = playAuthority;
+    }
+
+    /**
+     * 对于推拉流代理，是否在收到on missing事件时总是发起注册
+     * @return
+     */
+    public boolean isAlwaysRegisterOnStart() {
+        return alwaysRegisterOnStart;
+    }
+
+    public void setAlwaysRegisterOnStart(boolean alwaysRegisterOnStart) {
+        this.alwaysRegisterOnStart = alwaysRegisterOnStart;
     }
 }

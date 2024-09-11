@@ -7,7 +7,6 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -424,7 +423,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     public boolean start(String app, String stream) {
         boolean result = false;
         StreamProxyItem streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
-        if (streamProxy != null && !streamProxy.isEnable() ) {
+        if (streamProxy != null && (!streamProxy.isEnable() || userSetting.isAlwaysRegisterOnStart() )) {
             WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxy);
             if (wvpResult == null) {
                 return false;
