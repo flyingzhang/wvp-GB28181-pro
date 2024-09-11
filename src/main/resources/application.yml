@@ -2,4 +2,8 @@ spring:
   application:
     name: wvp
   profiles:
-    active: local272
+    active: dev
+
+springdoc:
+  api-docs:
+    enabled: false  # turn off by default. modify in dev/test profile
