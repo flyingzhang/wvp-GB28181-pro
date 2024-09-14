@@ -788,7 +788,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
         streamInfoResult.setIp(addr);
         streamInfoResult.setMediaServerId(mediaServer.getId());
-        String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
+        String callIdParam = MediaServerUtils.getPlayAuthString(userSetting, callId);
         streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
 
